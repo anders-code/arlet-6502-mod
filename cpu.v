@@ -40,7 +40,6 @@ reg  [7:0] ABH;         // Address Bus Register MSB
 wire [7:0] ADD;         // Adder Hold Register (registered in ALU)
 
 reg  [7:0] DIHOLD;      // Hold for Data In
-reg  DIHOLD_valid;      //
 wire [7:0] DIMUX;       //
 
 reg  [7:0] IRHOLD;      // Hold for Instruction register 
@@ -595,7 +594,7 @@ always @*
         REG :   alu_op = op; 
 
         DECODE,
-        ABS1:   alu_op = 1'bx;
+        ABS1:   alu_op = 4'hx;
 
         PUSH1,
         BRK0,
