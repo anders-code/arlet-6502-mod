@@ -19,10 +19,14 @@ logic rst;
 
 logic en;
 logic cs_n;
-wire mosi = mosi_data[63];
-logic miso;
+wire mosi;
+wire miso;
 
-
+wire [23:0]mem_addr;
+wire       mem_en;
+wire       mem_wr;
+wire  [7:0]mem_wdata;
+reg   [7:0]mem_rdata;
 
 spi_sram spi_sram_inst (
    .clk,
@@ -32,8 +36,23 @@ spi_sram spi_sram_inst (
    .en2 (en),
    .cs_n,
    .mosi,
-   .miso
+   .miso,
+   .mem_addr,
+   .mem_en,
+   .mem_wr,
+   .mem_wdata,
+   .mem_rdata
 );
+
+
+reg [7:0]mem[64*1024];
+always_ff @(posedge clk) begin
+    if (mem_en) begin
+        if (mem_wr)
+            mem[mem_addr[15:0]] <= mem_wdata;
+        mem_rdata <= mem[mem_addr[15:0]];
+    end
+end
 
 logic miso_shift = 0;
 
@@ -41,41 +60,36 @@ initial begin
     #17 rst  = 1;
         en   = 1;
         cs_n = 1;
-        spi_sram_inst.mem['h407] = 'h77;
-        spi_sram_inst.mem['h408] = 'h88;
-        spi_sram_inst.mem['h409] = 'h99;
-        spi_sram_inst.mem['h40a] = 'haa;
-        spi_sram_inst.mem['h40b] = 'hbb;
-        spi_sram_inst.mem['h40c] = 'hcc;
+        mem['h407] = 'h77;
+        mem['h408] = 'h88;
+        mem['h409] = 'h99;
+        mem['h40a] = 'haa;
+        mem['h40b] = 'hbb;
+        mem['h40c] = 'hcc;
 
    #100 rst = 0;
 
-   #100 mosi_data = { 8'h83, 24'h800409, 32'b0 };
+   #100 shift_data = { 8'h83, 24'h800409, 32'b0 };
         cs_n = 0;
    #320 miso_shift = 1;
    #160 cs_n = 1;
-   
-   #100 mosi_data = { 8'h82, 24'h800405, 32'h11223344 };
+
+   #100 shift_data = { 8'h82, 24'h800405, 32'h11223344 };
         cs_n = 0;
    #640 cs_n = 1;
-   
-   #100 mosi_data = { 8'h83, 24'h800405, 32'b0 };
+
+   #100 shift_data = { 8'h83, 24'h800405, 32'b0 };
         cs_n = 0;
    #640 cs_n = 1;
-        
+
 end
 
-reg [63:0]mosi_data;
+reg [63:0]shift_data;
 always @(negedge clk) begin
     if (!cs_n)
-        mosi_data <= { mosi_data, 1'b0 };
+        shift_data <= { shift_data, miso };
 end
-
-reg [31:0]miso_data = 0;
-always @(posedge clk) begin
-    if (!cs_n && miso_shift)
-        miso_data <= { miso_data, miso };
-end
+assign mosi = shift_data[63];
 
 endmodule
 `resetall
