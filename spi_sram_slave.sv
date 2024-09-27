@@ -3,7 +3,7 @@
 `default_nettype none
 
 
-module spi_sram (
+module spi_sram_slave (
     input  wire clk,
     input  wire clk2,
     input  wire rst,
@@ -47,19 +47,19 @@ State_Type next_state;
 logic counter_reset;
 logic [4:0]counter_reset_val;
 
-logic din_shift;
+logic data_shift;
+logic data_load;
 
-logic addr_reset;
 logic addr_shift;
 logic addr_load_lsb;
 logic addr_incr;
 logic addr_early;
 
-logic dout_load;
-logic dout_shift;
+logic mem_en_sm;
+logic mem_wr_sm;
 
-logic men;
-logic mwr;
+
+reg counter_done;
 
 
 always_comb begin
@@ -68,33 +68,30 @@ always_comb begin
     counter_reset = 0;
     counter_reset_val = (7-2);
 
-    addr_reset = 0;
+    data_shift = 0;
+    data_load  = 0;
+
     addr_shift = 0;
     addr_load_lsb = 0;
     addr_incr  = 0;
     addr_early = 0;
 
-    men = 0;
-    mwr = 0;
+    mem_en_sm = 0;
+    mem_wr_sm = 0;
 
-    din_shift = 0;
-
-    dout_load = 0;
-    dout_shift = 0;
-
-    unique case(state)
-        default: begin // IDLE
+    unique case (state)
+        IDLE: begin
             counter_reset = 1;
             counter_reset_val = (6-2);
 
-            din_shift = 1;
+            data_shift = 1;
 
             if (!cs_n)
                 next_state = CMD1;
         end
 
         CMD1: begin
-            din_shift = 1;
+            data_shift = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -106,7 +103,7 @@ always_comb begin
             counter_reset = 1;
             counter_reset_val = (23-2);
 
-            din_shift = 1;
+            data_shift = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -131,20 +128,22 @@ always_comb begin
             addr_early = 1;
             addr_load_lsb = 1;
 
-            men = 1;
+            mem_en_sm  = 1;
 
             if (cs_n)
                 next_state = DONE;
             else begin
-                if (din[6:0] == 7'h03)
+                if (data[6:0] == 7'h03)
                     next_state = READ1;
-                else if (din[6:0] == 7'h02)
+                else if (data[6:0] == 7'h02)
                     next_state = WRITE1;
+                else
+                    next_state = ERR;
             end
         end
 
         READ1: begin
-            dout_load = 1;
+            data_load = 1;
             addr_incr = 1;
 
             if (cs_n)
@@ -154,7 +153,7 @@ always_comb begin
         end
 
         READ2: begin
-            dout_shift = 1;
+            data_shift = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -166,9 +165,9 @@ always_comb begin
             counter_reset = 1;
             counter_reset_val = (7-2);
 
-            dout_shift = 1;
+            data_shift = 1;
 
-            men = 1;
+            mem_en_sm  = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -177,7 +176,7 @@ always_comb begin
         end
 
         WRITE1: begin
-            din_shift = 1;
+            data_shift = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -189,7 +188,7 @@ always_comb begin
             counter_reset = 1;
             counter_reset_val = (7-2);
 
-            din_shift = 1;
+            data_shift = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -198,12 +197,12 @@ always_comb begin
         end
 
         WRITE3: begin
-            din_shift = 1;
+            data_shift = 1;
 
-            addr_incr = 1;
+            addr_incr  = 1;
 
-            men = 1;
-            mwr = 1;
+            mem_en_sm  = 1;
+            mem_wr_sm  = 1;
 
             if (cs_n)
                 next_state = DONE;
@@ -214,6 +213,7 @@ always_comb begin
         DONE: begin
             counter_reset = 1;
             counter_reset_val = (2-2);
+
             if (!cs_n)
                 next_state = ERR;
             else
@@ -244,7 +244,6 @@ always_ff @(posedge clk) begin
         state <= next_state;
 end
 
-reg counter_done;
 reg [4:0]counter;
 always_ff @(posedge clk) begin
     if (en && counter_reset)
@@ -253,38 +252,46 @@ always_ff @(posedge clk) begin
         { counter_done, counter } <= counter - 1;
 end
 
-reg [7:0]din;
+reg [7:0]data;
 always_ff @(posedge clk) begin
-    if (en && din_shift)
-        din <= { din, mosi };
+    if (en) begin
+        if (data_load)
+            data <= mem_rdata;
+        else if (data_shift)
+            data <= { data, mosi };
+    end
+end
+
+reg dout;
+always_ff @(posedge clk2) begin
+    if (en2) begin
+        if (data_load)
+            dout <= mem_rdata[7];
+        else
+            dout <= data[6];
+    end
 end
 
 reg [23:0]addr;
 always_ff @(posedge clk) begin
-    if (en && addr_incr)
-        addr <= addr + 1;
-    else if (en) begin
-        if (addr_shift)
-            addr[23:1] <= { addr[23:1], mosi };
-        if (addr_load_lsb)
-            addr[0] <= mosi;
+    if (en) begin
+        if (addr_incr)
+            addr <= addr + 1;
+        else begin
+            if (addr_shift)
+                addr[23:1] <= { addr[23:1], mosi };
+            if (addr_load_lsb)
+                addr[0] <= mosi;
+        end
     end
 end
 
-reg [7:0]dout;
-always_ff @(posedge clk2) begin
-    if (en2 && dout_load)
-        dout <= mem_rdata;
-    else if (en2 && dout_shift)
-        dout <= { dout, 1'b0 };
-end
-
-assign mem_en    = men;
-assign mem_wr    = mwr;
+assign mem_en    = en && mem_en_sm;
+assign mem_wr    = mem_wr_sm;
 assign mem_addr  = { addr[23:1], addr_early ? mosi : addr[0] };
-assign mem_wdata = din;
+assign mem_wdata = data;
 
-assign miso = dout[7];
+assign miso = dout;
 
 endmodule
 `resetall

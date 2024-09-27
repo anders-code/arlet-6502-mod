@@ -28,7 +28,7 @@ wire       mem_wr;
 wire  [7:0]mem_wdata;
 reg   [7:0]mem_rdata;
 
-spi_sram spi_sram_inst (
+spi_sram_slave spi_sram_slave_inst (
    .clk,
    .clk2 (~clk),
    .rst,
@@ -58,7 +58,7 @@ logic miso_shift = 0;
 
 initial begin
     #17 rst  = 1;
-        en   = 1;
+        en   = 0;
         cs_n = 1;
         mem['h407] = 'h77;
         mem['h408] = 'h88;
@@ -68,6 +68,7 @@ initial begin
         mem['h40c] = 'hcc;
 
    #100 rst = 0;
+        en  = 1;
 
    #100 shift_data = { 8'h83, 24'h800409, 32'b0 };
         cs_n = 0;

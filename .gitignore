@@ -1,0 +1,9 @@
+*.swp
+*.vcd
+.*
+!.git*
+*.log
+*.jou
+*.str
+/build/
+/project*
