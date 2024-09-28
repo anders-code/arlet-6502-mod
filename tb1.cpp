@@ -34,7 +34,7 @@ int main(int argc, char** argv, char** env)
     dut->nmi = 0;
     dut->irq = 0;
 
-    while (sim_time < RESET_TIME || !dut->clk)
+    while (sim_time < RESET_TIME || !dut->rdy || !dut->clk)
     {
         dut->clk ^= 1;
         dut->eval();
@@ -100,6 +100,7 @@ int main(int argc, char** argv, char** env)
     }
 #endif
 
+    unsigned ptc = 0xffffffff;
     while (sim_time < RUN_TIME && dut->rootp->v6502_verilator__DOT__cpu_inst__DOT__PC != 0x3469)
     {
         dut->clk ^= 1;
@@ -109,6 +110,9 @@ if (sim_time < GO_TIME+200 || sim_time > RUN_TIME-LOG_TIME)
         m_trace->dump(sim_time);
 #endif
         sim_time++;
+        if (sim_time % 1000000 == 0 || ptc != dut->tc)
+            printf("cycle: %lu test_case: 0x%02x\n", sim_time, dut->tc);
+        ptc = dut->tc;
     }
     printf("PPPPPP: %lu\n", sim_time);
 

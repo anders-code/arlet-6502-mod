@@ -5,16 +5,19 @@ module v6502_verilator(
     input  wire clk,
     input  wire rst,
     input  wire irq,
-    input  wire nmi
+    input  wire nmi,
+    output wire rdy,
+    output wire [7:0]tc
 );
 
-reg [1:0]rdy;
+reg [1:0]rdyr;
 always_ff @(posedge clk) begin
-    if (rst || rdy == 2'b0)
-        rdy <= 2'b01;
+    if (rst || rdyr == 2'b0)
+        rdyr <= 2'b01;
     else
-        rdy <= { rdy, 1'b0 };
+        rdyr <= { rdyr, 1'b0 };
 end
+assign rdy = rdyr[0];
 
 wire [15:0]addr;
 wire  [7:0]din;
@@ -29,21 +32,24 @@ cpu cpu_inst (
     .WE    (we),
     .IRQ   (irq),
     .NMI   (nmi),
-    .RDY   (rdy[0])
+    .RDY   (rdy)
 );
 
 reg [7:0]mem[64*1024];
 reg [7:0]memout;
 reg [7:0]memout2;
 always_ff @(posedge clk) begin
-    if (we)
-        mem[addr] <= dout;
-    if (rdy[0])
-    memout <= mem[addr];
+    if (rdy) begin
+        if (we)
+            mem[addr] <= dout;
+        memout <= mem[addr];
+    end
     memout2 <= mem[addr];
 end
 
-assign din = rdy[0] ? memout : 8'haa;
+assign din = rdy ? memout : 8'haa;
+
+assign tc = mem[16'h0200];
 
 initial begin
     string file = "";

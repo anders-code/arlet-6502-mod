@@ -40,3 +40,30 @@ target_compile_definitions(v6502 PUBLIC
 add_executable(tb1 tb1.cpp)
 target_compile_options(tb1 PRIVATE -g3)
 target_link_libraries(tb1 v6502)
+
+add_library(v65022 STATIC)
+
+verilate(v65022
+    PREFIX         V65022
+    TOP_MODULE     v6502_verilator2
+    TRACE          1
+    THREADS        0
+    OPT_SLOW       -O3
+    OPT_FAST       -O3
+    OPT_GLOBAL     -O3
+    VERILATOR_ARGS -DSIM=1 --prof-cfuncs -CFLAGS -DVL_DEBUG -Wall -Wpedantic -Wno-fatal -Werror-USERFATAL -Werror-USERERROR
+    SOURCES
+        cfg.vlt
+        v6502_verilator2.sv 
+        ALU.v
+        cpu.v
+)
+
+target_compile_definitions(v65022 PUBLIC
+    VM_TRACE=$<BOOL:$<TARGET_PROPERTY:v6502,VERILATOR_TRACE>>
+    VM_TRACE_VCD=$<BOOL:$<TARGET_PROPERTY:v6502,VERILATOR_TRACE_VCD>>
+)
+
+add_executable(tb2 tb2.cpp)
+target_compile_options(tb2 PRIVATE -g3)
+target_link_libraries(tb2 v65022)

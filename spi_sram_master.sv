@@ -49,6 +49,8 @@ logic data_shift;
 logic data_load;
 logic [39:0]data_load_val;
 
+logic dhold_load;
+
 logic addr_shift;
 logic addr_load;
 logic addr_load_lsb;
@@ -74,6 +76,8 @@ always_comb begin
     data_shift = 0;
     data_load  = 0;
     data_load_val = 0;
+    
+    dhold_load = 0;
 
     addr_shift = 0;
     addr_load  = 0;
@@ -129,6 +133,7 @@ always_comb begin
             counter_reset_val = (3-2);
             
             data_shift = 1;
+            dhold_load = 1;
             
             next_state = DELAY1;
         end
@@ -204,11 +209,14 @@ end
 
 reg dout;
 always_ff @(posedge clk2) begin
-    if (en2) begin
-//        if (data_load)
-//            dout <= data_load_val[31];
-//        else
-            dout <= data[39];
+    if (en2)
+        dout <= data[39];
+end
+
+reg [7:0]dhold;
+always_ff @(posedge clk) begin
+    if (en && dhold_load) begin
+        dhold <= { data, miso };
     end
 end
 
@@ -218,6 +226,7 @@ always_ff @(posedge clk2) begin
         cs_n_out <= cs_n_sm;
 end
 
+//assign mem_rdata = dhold;
 assign mem_rdata = data[7:0];
 
 assign mosi = dout;

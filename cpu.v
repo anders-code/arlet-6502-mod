@@ -849,11 +849,15 @@ always @(posedge clk )
 assign IR = (IRQ & ~I) | NMI_edge ? 8'h00 :
                      IRHOLD_valid ? IRHOLD : DIMUX;
 
+`ifdef nope
 always @(posedge clk )
     if( RDY )
         DIHOLD <= DI;
 
 assign DIMUX = ~RDY ? DIHOLD : DI;
+`else
+assign DIMUX = DI;
+`endif
 
 /*
  * Microcode state machine
