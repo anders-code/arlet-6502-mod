@@ -488,6 +488,7 @@ always @*
  */
 
 always @(posedge clk)
+    if (RDY)
     adj_bcd <= adc_sbc & D;     // '1' when doing a BCD instruction
 
 reg [3:0] ADJL;
@@ -741,6 +742,7 @@ always @*
  * Update C flag when doing ADC/SBC, shift/rotate, compare
  */
 always @(posedge clk )
+if (RDY) begin
     if( shift && state == WRITE ) 
         C <= CO;
     else if( state == RTI2 )
@@ -755,12 +757,14 @@ always @(posedge clk )
             if( clc ) C <= 0;
         end
     end
+end
 
 /*
  * Update Z, N flags when writing A, X, Y, Memory, or when doing compare
  */
 
 always @(posedge clk) 
+if (RDY) begin
     if( state == WRITE ) 
         Z <= AZ;
     else if( state == RTI2 )
@@ -771,8 +775,10 @@ always @(posedge clk)
         else if( (load_reg & (regsel != SEL_S)) | compare | bit_ins )
             Z <= AZ;
     end
+end
 
 always @(posedge clk)
+if (RDY) begin
     if( state == WRITE )
         N <= AN;
     else if( state == RTI2 )
@@ -784,12 +790,14 @@ always @(posedge clk)
             N <= AN;
     end else if( state == FETCH && bit_ins ) 
         N <= DIMUX[7];
+end
 
 /*
  * Update I flag
  */
 
 always @(posedge clk)
+if (RDY) begin
     if( state == BRK3 )
         I <= 1;
     else if( state == RTI2 )
@@ -799,11 +807,13 @@ always @(posedge clk)
         if( cli ) I <= 0;
     end else if( state == DECODE )
         if( plp ) I <= ADD[2];
+end
 
 /*
  * Update D flag
  */
 always @(posedge clk ) 
+if (RDY) begin
     if( state == RTI2 )
         D <= DIMUX[3];
     else if( state == DECODE ) begin
@@ -811,11 +821,13 @@ always @(posedge clk )
         if( cld ) D <= 0;
         if( plp ) D <= ADD[3];
     end
+end
 
 /*
  * Update V flag
  */
 always @(posedge clk )
+if (RDY) begin
     if( state == RTI2 ) 
         V <= DIMUX[6];
     else if( state == DECODE ) begin
@@ -824,6 +836,7 @@ always @(posedge clk )
         if( plp )     V <= ADD[6];
     end else if( state == FETCH && bit_ins ) 
         V <= DIMUX[6];
+end
 
 /*
  * Instruction decoder
@@ -1212,12 +1225,15 @@ always @*
 reg NMI_1 = 0;          // delayed NMI signal
 
 always @(posedge clk)
+if (RDY)
     NMI_1 <= NMI;
 
 always @(posedge clk )
+if (RDY) begin
     if( NMI_edge && state == BRK3 )
         NMI_edge <= 0;
     else if( NMI & ~NMI_1 )
         NMI_edge <= 1;
+end
 
 endmodule
