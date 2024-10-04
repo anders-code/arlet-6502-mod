@@ -45,7 +45,13 @@ always_ff @(posedge clk) begin
         memout <= mem[ab];
     end
 end
-assign din = memout;
+assign din = rdy ? memout : 8'hxx;
+
+always begin  
+     #7 rdy = 1;
+    #10 rdy = 0;
+    #13;
+end
 
 initial begin
     $readmemh({MEM_FILE_PREFIX, "../mem-files/basic.mem"}, mem, 0, $size(mem)-1);
@@ -54,10 +60,9 @@ initial begin
    #100 rst = 0;
         irq = 0;
         nmi = 0;
-        rdy = 1;
 
    #200 wait(cpu_inst.state == cpu_inst.DECODE && rdy);
-        @(posedge clk);
+       @(posedge clk);
         `tb_assert(cpu_inst.PC_temp == 'h0401);
         `tb_assert_report;
         $finish(2);

@@ -854,7 +854,8 @@ always @(posedge clk )
     if( RDY )
         DIHOLD <= DI;
 
-assign DIMUX = ~RDY ? DIHOLD : DI;
+//assign DIMUX = ~RDY ? DIHOLD : DI;
+assign DIMUX = DI;
 
 /*
  * Microcode state machine
