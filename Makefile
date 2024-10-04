@@ -1,3 +1,5 @@
+.SECONDARY:
+
 THIS_DIR = $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
 BUILD_DIR = $(THIS_DIR)/build
@@ -6,7 +8,7 @@ BIN_DIR = $(OUT_DIR)/bin
 
 DEFAULT_TARGETS = tb1
 
-PHONIES = all configure reconfigure clean
+PHONIES = help all configure reconfigure clean
 
 TARGETS = $(filter-out $(PHONIES),$(MAKECMDGOALS))
 ifeq ($(TARGETS),)
@@ -15,8 +17,7 @@ endif
 
 ifeq ($(DEBUG),1)
     CMAKE_DEBUG = -DCMAKE_BUILD_TYPE=Debug --fresh
-endif
-ifeq ($(DEBUG),0)
+else ifeq ($(DEBUG),0)
     CMAKE_DEBUG = --fresh
 endif
 
