@@ -25,7 +25,7 @@ set sim_utils_dir "${repo_dir}/sim/utils"
 
 set sim_1 [get_filesets "sim_1"]
 add_files -norecurse -fileset ${sim_1} [list \
-    [file normalize "${sim_utils_dir}/tb_clock.sv"] \
+    [file normalize "${sim_utils_dir}/tb_clkgen.sv"] \
     [file normalize "${sim_utils_dir}/tb_utils.sv"] \
     [file normalize "${sim_dir}/tb_wait_state.sv"] \
     [file normalize "${sim_dir}/tb_wait_state_behav.wcfg"] \
@@ -34,4 +34,4 @@ add_files -norecurse -fileset ${sim_1} [list \
 set_property -obj ${sim_1} "include_dirs" ${repo_dir}
 set_property -obj ${sim_1} "verilog_define" "SIM=1"
 set_property -obj ${sim_1} "top" "tb_wait_state"
-set_property -obj ${sim_1} "generic" {MEM_FILE_PREFIX="../../../../../"}
+set_property -obj ${sim_1} "xsim.more_options" {\-testplusarg basedir=../../../../..}

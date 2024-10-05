@@ -18,7 +18,7 @@ localparam P2 = PERIOD/2.0;
 // also ensure the sim handles resets correctly by forcing clk to be invalid
 // (1'bx) // @ time 0. this must not propogate after reset.
 // first posedge will be @PERIOD ns
-logic clki;
+reg clki;
 always begin
     #P2 clki = 0;
     #P2 clki = 1;

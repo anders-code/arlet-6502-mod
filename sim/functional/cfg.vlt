@@ -1,0 +1,5 @@
+`verilator_config
+lint_off -rule DECLFILENAME -file "../utils/tb_utils.sv"
+public_flat_rw -module "v6502_verilator" -var "memout"
+public_flat_rw -module "cpu" -var "state"
+public_flat_rw -module "cpu" -var "PC"

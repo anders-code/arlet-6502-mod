@@ -5,23 +5,21 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-`include "sim/utils/tb_assert.vh"
-
-module tb_wait_state ();
+module tb_functional_vl (
+    input wire clk,
+    input wire rst,
+    input wire nmi,
+    input wire irq,
+    input wire rdy,
+    output wire [7:0]tc
+);
 
 import tb_utils::*;
-
-logic clk;
-logic rst;
-tb_clkgen tb_clkgen_inst( .clk );
 
 logic [15:0]ab;
 logic  [7:0]dout;
 logic  [7:0]din;
 logic       we;
-logic       irq;
-logic       nmi;
-logic       rdy;
 
 cpu_6502 cpu_inst (
   .clk,
@@ -44,28 +42,13 @@ always_ff @(posedge clk) begin
         memout <= mem[ab];
     end
 end
-assign din = rdy ? memout : 8'hxx;
+assign din = memout;
 
-always begin  
-     #7 rdy = 1;
-    #10 rdy = 0;
-    #13;
-end
+assign tc = mem['h0200];
 
 initial begin
-    $readmemh(tb_rel_path("../mem-files/basic.mem"), mem, 0, $size(mem)-1);
-
-    #17 rst = 1;
-   #100 rst = 0;
-        irq = 0;
-        nmi = 0;
-
-   #200 wait(cpu_inst.state == cpu_inst.DECODE && rdy);
-       @(posedge clk);
-        `tb_assert(cpu_inst.PC_temp == 'h0401);
-        tb_assert_report;
-        $finish(2);
+    $readmemh(tb_rel_path("../mem-files/6502_functional_test.mem"), mem, 0, $size(mem)-1);
+    mem['hfffc +: 2] = '{ 8'h00, 8'h04 };
 end
-
 endmodule
 `resetall

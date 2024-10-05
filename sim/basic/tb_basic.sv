@@ -6,11 +6,10 @@
 `default_nettype none
 
 `include "sim/utils/tb_assert.vh"
-module tb_wait_state #(
-    parameter MEM_FILE_PREFIX = "./"
-) ();
 
-`tb_assert_import;
+module tb_basic();
+
+import tb_utils::*;
 
 logic clk;
 logic rst;
@@ -48,7 +47,7 @@ end
 assign din = memout;
 
 initial begin
-    $readmemh({MEM_FILE_PREFIX, "../mem-files/basic.mem"}, mem, 0, $size(mem)-1);
+    $readmemh(tb_rel_path("../mem-files/basic.mem"), mem, 0, $size(mem)-1);
 
     #17 rst = 1;
    #100 rst = 0;
@@ -59,7 +58,7 @@ initial begin
    #200 wait(cpu_inst.state == cpu_inst.DECODE && rdy);
         @(posedge clk);
         `tb_assert(cpu_inst.PC_temp == 'h0401);
-        `tb_assert_report;
+        tb_assert_report;
         $finish(2);
 end
 
