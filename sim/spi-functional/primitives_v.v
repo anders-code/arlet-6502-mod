@@ -566,10 +566,10 @@ module sky130_fd_sc_hd__udp_dlatch$PR (
     RESET
 );
 
-    output Q    ;
-    input  D    ;
-    input  GATE ;
-    input  RESET;
+    output reg Q    ;
+    input  wire D    ;
+    input  wire GATE ;
+    input  wire RESET;
 
     always @* begin
         if (RESET)

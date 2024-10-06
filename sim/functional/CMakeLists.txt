@@ -34,6 +34,7 @@ verilate(${TARGET}
     OPT_GLOBAL     -O3
     VERILATOR_ARGS
         -I../..
+        -DSIM=1
         -Wall -Wpedantic -Wno-fatal -Werror-USERFATAL -Werror-USERERROR 
         --x-assign fast --x-initial fast
         --trace-underscore

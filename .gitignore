@@ -12,6 +12,8 @@
 
 # waveforms
 *.vcd
+*.fst
+*.wdb
 
 # vivado stuff
 *.log

@@ -50,19 +50,29 @@ wire [7:0]tc = mem['h0200];
 reg [7:0]lasttc = 0;
 time lasttm = 100;
 time lasttm2 = 0;
+int termcnt = 0;
 always @(posedge clk) begin
     if (tc != lasttc) begin
-        $display("test %2d, cycle %0d (%0d)", tc, $time/10, ($time-lasttm)/10);
+        $display("test %2d, time %0d (%0d)", tc, $time/10, ($time-lasttm)/10);
         lasttc  <= tc;
         lasttm  <= $time;
     end
     else if ($time - lasttm2 >= 10_000_000) begin
-        $display("         cycle %0d (%0d)", $time/10, ($time-lasttm)/10);
+        $display("         time %0d (%0d)", $time/10, ($time-lasttm)/10);
         lasttm2 <= $time;
     end
 
-    if (cpu_inst.PC == 'h3469)
-        $finish(2);
+    // Arlet's core runs PC one cycle early so PC is 3469+1 when executing 3469
+    if (cpu_inst.PC == 'h3469+1) begin
+        // http://forum.6502.org/viewtopic.php?f=8&t=6202#p90723
+        // 10 cycles of reset + 6 cycles before executing 0400 
+        if (termcnt == 0)
+            $display("\nSuccess! cycles %0d (ideal 96241364)\n", $time/10 - 16);
+        else if (termcnt >= 2)
+            $finish(2);
+
+        termcnt <= termcnt + 1;
+    end
 end
 
 initial begin
