@@ -1,0 +1,30 @@
+[*]
+[*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
+[*] Sat Oct  5 16:36:40 2024
+[*]
+[dumpfile] "/home/andy/work/arlet-6502-mod/sim/functional-test/waveform.vcd"
+[dumpfile_mtime] "Sat Oct  5 16:33:13 2024"
+[dumpfile_size] 1327457
+[savefile] "/home/andy/work/arlet-6502-mod/sim/functional-test/a.gtkw"
+[timestart] 1992
+[size] 1000 600
+[pos] -1 -1
+*-3.577443 2003 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.tb_functional_vl.
+[sst_width] 273
+[signals_width] 150
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@28
+TOP.tb_functional_vl.clk
+TOP.tb_functional_vl.rst
+@22
+TOP.tb_functional_vl.ab[15:0]
+TOP.tb_functional_vl.cpu_inst.state[5:0]
+@820
+TOP.tb_functional_vl.cpu_inst.statename[47:0]
+@23
+TOP.tb_functional_vl.din[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

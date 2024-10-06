@@ -1,0 +1,9 @@
+`verilator_config
+lint_off -rule DECLFILENAME -file "../utils/tb_utils.sv"
+lint_off -rule DECLFILENAME -file "primitives_v.v"
+lint_off -rule DECLFILENAME -file "sky130_fd_sc_hd.v"
+lint_off -rule UNUSEDSIGNAL -file "sky130_fd_sc_hd.v"
+lint_off -rule UNUSEDSIGNAL -file "primitives_v.v"
+public_flat_rw -module "cpu_6502" -var "state"
+public_flat_rw -module "cpu_6502" -var "PC"
+clocker -module "tt_um_anders_tt_6502" -var "_0011_"
