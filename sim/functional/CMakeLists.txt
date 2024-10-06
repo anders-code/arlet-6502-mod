@@ -14,33 +14,36 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB_DIR})
 
 find_package(verilator 5 HINTS $ENV{VERILATOR_ROOT} REQUIRED)
 
-add_executable(tb_functional_vl tb_functional_vl.cpp)
-
 file(GLOB RTL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     ../../rtl/*.v
 )
 
-verilate(tb_functional_vl
-    TOP_MODULE     tb_functional_vl
-    PREFIX         Vfunctional
-    TRACE          1
+set(PREFIX Vtb_functional)
+set(TARGET tb_functional)
+
+add_executable(${TARGET} ../utils/verilator_main.cpp)
+
+verilate(${TARGET}
+    TOP_MODULE     ${TARGET}
+    PREFIX         ${PREFIX}
     THREADS        0
+    TRACE_FST      1
+#    TRACE_THREADS  1
     OPT_SLOW       -O3
     OPT_FAST       -O3
     OPT_GLOBAL     -O3
-    VERILATOR_ARGS -DSIM=1 -Wall -Wpedantic -Wno-fatal -Werror-USERFATAL -Werror-USERERROR
+    VERILATOR_ARGS
+        -I../..
+        -Wall -Wpedantic -Wno-fatal -Werror-USERFATAL -Werror-USERERROR 
+        --x-assign fast --x-initial fast
+        --trace-underscore
     SOURCES
         cfg.vlt
         ../utils/tb_utils.sv
-        tb_functional_vl.sv 
+        ../utils/tb_clkrst.sv
+        tb_functional.sv 
         ${RTL_SOURCES}
 )
 
-target_compile_definitions(tb_functional_vl PUBLIC
-    VM_TRACE=$<BOOL:$<TARGET_PROPERTY:tb_functional_vl,VERILATOR_TRACE>>
-    VM_TRACE_VCD=$<BOOL:$<TARGET_PROPERTY:tb_functional_vl,VERILATOR_TRACE_VCD>>
-)
-
-#add_executable(tb1 tb1.cpp)
-target_compile_options(tb_functional_vl PRIVATE -g3)
-#target_link_libraries(tb1 v6502)
+target_compile_definitions(${TARGET} PRIVATE VTB=${PREFIX})
+target_compile_options(${TARGET} PRIVATE -g3)

@@ -4,7 +4,7 @@ BUILD_DIR = $(THIS_DIR)/build
 CMAKE_DIR = $(BUILD_DIR)/cmake
 BIN_DIR = $(OUT_DIR)/bin
 
-DEFAULT_TARGETS = tb_functional_vl
+DEFAULT_TARGETS = tb_functional
 
 PHONIES = all configure reconfigure clean
 
