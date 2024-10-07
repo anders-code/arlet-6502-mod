@@ -30,7 +30,7 @@ package tb_utils;
         end
     endtask
     
-    task automatic tb_assert_report(input int fake=0);
+    task automatic tb_assert_report;
         $display("\nAssert report:");
         $display("    passed: %0d/%0d", asspass, asstot);
         $display("    failed: %0d/%0d\n", assfail, asstot);

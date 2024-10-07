@@ -39,11 +39,12 @@ verilate(${TARGET}
         --x-assign fast --x-initial fast
         --trace-underscore
     SOURCES
-        cfg.vlt
+        ../../rtl/cfg.vlt
+        ${RTL_SOURCES}
+        ../utils/cfg.vlt
         ../utils/tb_utils.sv
         ../utils/tb_clkrst.sv
         tb_functional.sv 
-        ${RTL_SOURCES}
 )
 
 target_compile_definitions(${TARGET} PRIVATE VTB=${PREFIX})
