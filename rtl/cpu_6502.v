@@ -45,10 +45,6 @@ reg  [7:0] ABL;         // Address Bus Register LSB
 reg  [7:0] ABH;         // Address Bus Register MSB
 wire [7:0] ADD;         // Adder Hold Register (registered in ALU)
 
-reg  [7:0] DIHOLD;      // Hold for Data In
-reg  DIHOLD_valid;      //
-wire [7:0] DIMUX;       //
-
 reg  [7:0] IRHOLD;      // Hold for Instruction register
 reg  IRHOLD_valid;      // Valid instruction in IRHOLD
 
@@ -312,7 +308,7 @@ always @* begin
         JMPI1,
         JSR3,
         RTS3,
-        RTI4:           PC_temp = { DIMUX, ADD };
+        RTI4:           PC_temp = { DI, ADD };
 
         BRA1:           PC_temp = { ABH, ADD };
 
@@ -376,7 +372,7 @@ always @* begin
         JMP1,
         JMPI1,
         RTI4,
-        ABS1:           AB = { DIMUX, ADD };
+        ABS1:           AB = { DI, ADD };
 
         BRA2,
         INDY3,
@@ -406,7 +402,7 @@ always @* begin
         INDX2:          AB = { ZEROPAGE, ADD };
 
         ZP0,
-        INDY0:          AB = { ZEROPAGE, DIMUX };
+        INDY0:          AB = { ZEROPAGE, DI };
 
         REG,
         READ,
@@ -544,7 +540,7 @@ end
  */
 always @(posedge clk) begin
     if( write_register & RDY )
-        AXYS[regsel] <= (state == JSR0) ? DIMUX : { ADD[7:4] + ADJH, ADD[3:0] + ADJL };
+        AXYS[regsel] <= (state == JSR0) ? DI : { ADD[7:4] + ADJH, ADD[3:0] + ADJL };
 end
 
 /*
@@ -669,7 +665,7 @@ always @* begin
         PUSH1:  AI = regfile;
 
         BRA0,
-        READ:   AI = DIMUX;
+        READ:   AI = DI;
 
         BRA1:   AI = ABH;       // don't use PCH in case we're
 
@@ -711,7 +707,7 @@ always @* begin
          DECODE,
          ABS1:  BI = 8'hxx;
 
-         default:       BI = DIMUX;
+         default:       BI = DI;
     endcase
 end
 
@@ -760,7 +756,7 @@ always @(posedge clk ) begin
     if( shift && state == WRITE )
         C <= CO;
     else if( state == RTI2 )
-        C <= DIMUX[0];
+        C <= DI[0];
     else if( ~write_back && state == DECODE ) begin
         if( adc_sbc | shift | compare )
             C <= CO;
@@ -780,7 +776,7 @@ always @(posedge clk) begin
     if( state == WRITE )
         Z <= AZ;
     else if( state == RTI2 )
-        Z <= DIMUX[1];
+        Z <= DI[1];
     else if( state == DECODE ) begin
         if( plp )
             Z <= ADD[1];
@@ -793,14 +789,14 @@ always @(posedge clk) begin
     if( state == WRITE )
         N <= AN;
     else if( state == RTI2 )
-        N <= DIMUX[7];
+        N <= DI[7];
     else if( state == DECODE ) begin
         if( plp )
             N <= ADD[7];
         else if( (load_reg & (regsel != SEL_S)) | compare )
             N <= AN;
     end else if( state == FETCH && bit_ins )
-        N <= DIMUX[7];
+        N <= DI[7];
 end
 
 /*
@@ -810,7 +806,7 @@ always @(posedge clk) begin
     if( state == BRK3 )
         I <= 1;
     else if( state == RTI2 )
-        I <= DIMUX[2];
+        I <= DI[2];
     else if( state == REG ) begin
         if( sei ) I <= 1;
         if( cli ) I <= 0;
@@ -823,7 +819,7 @@ end
  */
 always @(posedge clk )begin
     if( state == RTI2 )
-        D <= DIMUX[3];
+        D <= DI[3];
     else if( state == DECODE ) begin
         if( sed ) D <= 1;
         if( cld ) D <= 0;
@@ -836,13 +832,13 @@ end
  */
 always @(posedge clk ) begin
     if( state == RTI2 )
-        V <= DIMUX[6];
+        V <= DI[6];
     else if( state == DECODE ) begin
         if( adc_sbc ) V <= AV;
         if( clv )     V <= 0;
         if( plp )     V <= ADD[6];
     end else if( state == FETCH && bit_ins )
-        V <= DIMUX[6];
+        V <= DI[6];
 end
 
 /*
@@ -859,21 +855,14 @@ always @(posedge clk `ASYNC_RESET)
         IRHOLD_valid <= 0;
     else if( RDY ) begin
         if( state == PULL0 || state == PUSH0 ) begin
-            IRHOLD <= DIMUX;
+            IRHOLD <= DI;
             IRHOLD_valid <= 1;
         end else if( state == DECODE )
             IRHOLD_valid <= 0;
     end
 
 assign IR = (IRQ & ~I) | NMI_edge ? 8'h00 :
-                     IRHOLD_valid ? IRHOLD : DIMUX;
-
-always @(posedge clk )
-    if( RDY )
-        DIHOLD <= DI;
-
-//assign DIMUX = ~RDY ? DIHOLD : DI;
-assign DIMUX = DI;
+                     IRHOLD_valid ? IRHOLD : DI;
 
 /*
  * Microcode state machine
