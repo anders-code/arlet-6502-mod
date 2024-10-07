@@ -1,6 +1,15 @@
 /*
  * ALU.
  *
+ * (C) Arlet Ottens, <arlet@c-scape.nl>
+ *
+ * Feel free to use this code in any project (commercial or not), as long as you
+ * keep this message, and the copyright notice. This code is provided "as is",
+ * without any warranties of any kind.
+ *
+ */
+
+/*
  * AI and BI are 8 bit inputs. Result in OUT.
  * CI is Carry In.
  * CO is Carry Out.
