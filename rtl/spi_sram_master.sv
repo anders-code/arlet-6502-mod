@@ -20,7 +20,7 @@ module spi_sram_master (
     input  wire       mem_en,
     input  wire       mem_wr,
     input  wire  [7:0]mem_wdata,
-    output wire  [7:0]mem_rdata    
+    output wire  [7:0]mem_rdata
 );
 
 typedef enum integer {
@@ -66,7 +66,7 @@ reg counter_done;
 
 always_comb begin
     next_state = state;
-    
+
     ready_sm = 0;
     cs_n_sm  = 0;
 
@@ -76,7 +76,7 @@ always_comb begin
     data_shift = 0;
     data_load  = 0;
     data_load_val = 0;
-    
+
     dhold_load = 0;
 
     addr_shift = 0;
@@ -89,7 +89,7 @@ always_comb begin
         IDLE: begin // IDLE
             ready_sm = 1;
             cs_n_sm  = 1;
-            
+
             counter_reset = 1;
             counter_reset_val = (31-2);
 
@@ -131,13 +131,13 @@ always_comb begin
         DATA2: begin
             counter_reset = 1;
             counter_reset_val = (3-2);
-            
+
             data_shift = 1;
             dhold_load = 1;
-            
+
             next_state = DELAY1;
         end
-        
+
         DELAY1: begin
             ready_sm = 1;
             cs_n_sm  = 1;
@@ -159,19 +159,19 @@ always_comb begin
             else if (counter_done)
                 next_state = IDLE;
         end
-        
+
         DELAY2: begin
             ready_sm = 0;
             cs_n_sm  = 1;
-            
+
             if (counter_done)
-                next_state = DELAY3;            
-        end    
-        
+                next_state = DELAY3;
+        end
+
         DELAY3: begin
             ready_sm = 0;
             cs_n_sm  = 1;
-            
+
             counter_reset = 1;
             counter_reset_val = (31-2);
 
