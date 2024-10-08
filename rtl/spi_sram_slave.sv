@@ -2,6 +2,9 @@
 `timescale 1ns / 1ps
 `default_nettype none
 
+`include "config.vh"
+`include "timescale.vh"
+`include "async_reset.vh"
 
 module spi_sram_slave (
     input  wire clk,
@@ -237,7 +240,7 @@ end
 
 
 // state register
-always_ff @(posedge clk) begin
+always_ff @(posedge clk `ASYNC(posedge rst)) begin
     if (rst)
         state <= IDLE;
     else if (en)

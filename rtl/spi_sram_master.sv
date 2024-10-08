@@ -1,7 +1,9 @@
 `resetall
-`timescale 1ns / 1ps
 `default_nettype none
 
+`include "config.vh"
+`include "timescale.vh"
+`include "async_reset.vh"
 
 module spi_sram_master (
     input  wire clk,
@@ -25,7 +27,6 @@ module spi_sram_master (
 
 typedef enum integer {
     IDLE,
-    LOAD,
     CMDADDR1,
     CMDADDR2,
     DATA1,
@@ -35,7 +36,7 @@ typedef enum integer {
     DELAY3
 } State_Type;
 
-State_Type state = IDLE;
+State_Type state;
 
 State_Type next_state;
 
@@ -85,7 +86,7 @@ always_comb begin
     addr_incr  = 0;
     addr_early = 0;
 
-    unique case(state)
+    unique0 case (state)
         IDLE: begin // IDLE
             ready_sm = 1;
             cs_n_sm  = 1;
@@ -182,7 +183,7 @@ end
 
 
 // state register
-always_ff @(posedge clk) begin
+always_ff @(posedge clk `ASYNC(posedge rst)) begin
     if (rst)
         state <= IDLE;
     else if (en)
