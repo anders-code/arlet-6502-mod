@@ -19,7 +19,6 @@ set(TARGET tb_spi_functional)
 set(PREFIX V${TARGET})
 
 file(GLOB RTL_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-    ../../rtl/*.v
     ../../rtl/*.sv
 )
 add_executable(${TARGET} ../utils/verilator_main.cpp)
